@@ -4,7 +4,13 @@ window.onload = function() {
 
 	var positions;
 	var vibratoInterval;
+	var arpInterval;
 	var vibratoIsRunning = false;
+	var arpeggiating = false;
+	var prevFreqStep = -1;
+
+	var arpOscillator = false;
+	var arpOscillator2 = false;
 	// var analyser = context.createAnalyser();
 	
 	// object which holds all the nodes
@@ -13,6 +19,7 @@ window.onload = function() {
 	var spheres = {};
 
 	var riggedHandPlugin;
+
 
 	//add nodes
 	nodes.filter = context.createBiquadFilter();  
@@ -51,13 +58,7 @@ window.onload = function() {
 	oscillator2.connect(nodes.filterHigh);
 	oscillator3.connect(nodes.filterHigh);
 
-	// create arpeggio oscillator
-	arpOscillator = context.createOscillator();
-	arpOscillator2 = context.createOscillator();
-	arpOscillator.type = "square";
-	arpOscillator2.type = "square";
-	arpOscillator.connect(nodes.arpFilter2);
-	arpOscillator2.connect(nodes.arpFilter2);
+	
 
 
 	// initial settings for nodes
@@ -77,10 +78,22 @@ window.onload = function() {
 	oscillator.noteOn(0);
 	oscillator2.noteOn(0);
 	oscillator3.noteOn(0);
-	arpOscillator.frequency.value = major[29];
-	arpOscillator2.frequency.value = major[29];
-	arpOscillator.noteOn(0);
-	arpOscillator2.noteOn(0);
+
+	arpOscillatorSetup = function(frequency) {
+		arpOscillator = context.createOscillator();
+		arpOscillator2 = context.createOscillator();
+		arpOscillator.type = "square";
+		arpOscillator2.type = "square";
+		arpOscillator.connect(nodes.arpFilter2);
+		arpOscillator2.connect(nodes.arpFilter2);
+		arpOscillator.frequency.value = frequency;
+		arpOscillator2.frequency.value = frequency;
+		arpOscillator.noteOn(0);
+		arpOscillator2.noteOn(0)
+		console.log("hello?");
+	}
+
+	// create arpeggio oscillator
 	nodes.volume.gain.value = 0;
 	nodes.arpVolume.gain.value = 0;
 
@@ -97,6 +110,10 @@ window.onload = function() {
     		nodes.arpVolume.gain.value = 0.3;
     	} else {
     		nodes.arpVolume.gain.value = 0;
+    		if(arpeggiating) {
+				clearInterval(arpInterval);
+				arpeggiating = false;
+			}
     	}
       	// foreach that is always listening for hand motions
 		frame.hands.forEach(function(hand, index) {
@@ -128,8 +145,7 @@ window.onload = function() {
 				nodes.filterHigh.frequency.value = z;
 			}
 			if(type == "right") {
-				arpOscillator.frequency.value = major[freqStep];
-				arpOscillator2.frequency.value = major[freqStep];
+				arpeggiate(freqStep);
 
 				nodes.arpFilter1.frequency.value = y;
 				nodes.arpFilter2.frequency.value = z;
@@ -158,6 +174,30 @@ window.onload = function() {
 
 	}
 
+	arpeggiate = function(freqStep) {
+		if(prevFreqStep != freqStep) {
+			if(arpeggiating) {
+				clearInterval(arpInterval);
+				arpeggiating = false;
+			}
+			var direction = 1;
+			arpeggiating = true;
+			arpInterval = setInterval(function() {
+				if(freqStep + direction >= (majorArp.length - 2) || freqStep + direction <= 0) {
+					direction *= -1;
+				}
+				if(arpOscillator != false || arpOscillator2 != false) {
+					arpOscillator.disconnect();
+					arpOscillator2.disconnect();
+				}
+				freqStep+=direction;
+				arpOscillatorSetup(majorArp[freqStep]);
+			}, 50)
+			prevFreqStep = freqStep;
+		}
+	}
+
 	riggedHandPlugin = Leap.loopController.plugins.riggedHand;
 
-}	
+}
+	
