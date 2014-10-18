@@ -33,19 +33,26 @@ window.onload = function() {
 	nodes.arpFilter2 = context.createBiquadFilter();
 	nodes.arpVolume = context.createGain();
 	nodes.arpVolume.connect(context.destination);
+	nodes.arpDelay = context.createDelay();
+	nodes.arpFeedbackGain = context.createGain();
 
 	// Connect all the nodes together
 	nodes.filter.connect(nodes.volume);
 	nodes.filterHigh.connect(nodes.filter);
 	
-	nodes.arpFilter1.connect(nodes.arpVolume);
 	nodes.arpFilter2.connect(nodes.arpFilter1);
+
 
 	nodes.filter.connect(nodes.delay);
 	nodes.delay.connect(nodes.feedbackGain);
 	nodes.feedbackGain.connect(nodes.volume);
 	nodes.feedbackGain.connect(nodes.delay);
 	nodes.volume.connect(context.destination);
+
+	nodes.arpFilter1.connect(nodes.arpDelay);
+	nodes.arpDelay.connect(nodes.arpFeedbackGain);
+	nodes.arpFeedbackGain.connect(nodes.arpVolume);
+	nodes.arpFeedbackGain.connect(nodes.arpDelay);
 
 	//Create initial oscillator
 	oscillator = context.createOscillator();
@@ -67,7 +74,10 @@ window.onload = function() {
 	nodes.filter.frequency.type = "lowpass";
 	nodes.filterHigh.frequency.type = "highpass";
 
+
 	// arp initials
+	nodes.arpDelay.delayTime.value = .8;
+	nodes.arpFeedbackGain.gain.value = .4;
 	nodes.arpFilter1.frequency.type = "lowpass";
 	nodes.arpFilter2.frequency.type = "highpass";
 	
@@ -107,7 +117,7 @@ window.onload = function() {
     		nodes.volume.gain.value = 0;
     	}
     	if((frame.hands.length >= 1 && frame.hands[0].type == "right") || (frame.hands.length > 1 && frame.hands[1].type == "right")) {
-    		nodes.arpVolume.gain.value = 0.3;
+    		nodes.arpVolume.gain.value = 0.2;
     	} else {
     		nodes.arpVolume.gain.value = 0;
     		if(arpeggiating) {
@@ -145,6 +155,7 @@ window.onload = function() {
 				nodes.filterHigh.frequency.value = z;
 			}
 			if(type == "right") {
+				(freqStep -12 > 0) ? freqStep -= 12 : freqStep = 0;
 				arpeggiate(freqStep);
 
 				nodes.arpFilter1.frequency.value = y;
@@ -191,8 +202,9 @@ window.onload = function() {
 					arpOscillator2.disconnect();
 				}
 				freqStep+=direction;
+				makeTriad(freqStep);
 				arpOscillatorSetup(majorArp[freqStep]);
-			}, 50)
+			}, 70)
 			prevFreqStep = freqStep;
 		}
 	}
