@@ -9,6 +9,8 @@ window.onload = function() {
 	// object which holds all the nodes
 	var nodes = {};
 
+	var spheres = {};
+
 	//add nodes
 	nodes.filter = context.createBiquadFilter();  
 	nodes.filterHigh = context.createBiquadFilter();
@@ -58,6 +60,9 @@ window.onload = function() {
 		nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
 		console.log(positions[1]);
 		console.log(positions[2]);
+
+		var sphere = ( spheres[index] || (spheres[index] = new Sphere()) );
+   		sphere.setTransform(hand.screenPosition(), hand.roll());
       });
 
     }).use('screenPosition', {scale: 0.25});
@@ -82,5 +87,30 @@ window.onload = function() {
 		}, 10)
 
 	}
+
+	var Sphere = function() {
+		var sphere = this;
+		var img = document.createElement('img');
+		img.src = 'sphere-01.svg';
+		img.style.position = 'absolute';
+		img.onload = function () {
+			sphere.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
+			document.body.appendChild(img);
+		}
+
+		sphere.setTransform = function(position, rotation) {
+
+			img.style.left = position[0] - img.width  / 2 + 'px';
+			img.style.top  = position[1] - img.height / 2 + 'px';
+
+			img.style.transform = 'rotate(' + -rotation + 'rad)';
+
+			img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
+			img.style.OTransform = img.style.transform;
+
+		};
+
+	};
+
 
 }	
