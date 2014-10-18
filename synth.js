@@ -12,6 +12,8 @@ window.onload = function() {
 
 	var spheres = {};
 
+	var riggedHandPlugin;
+
 	//add nodes
 	nodes.filter = context.createBiquadFilter();  
 	nodes.filterHigh = context.createBiquadFilter();
@@ -19,9 +21,19 @@ window.onload = function() {
 	nodes.delay = context.createDelay();
 	nodes.feedbackGain = context.createGain();
 
+	// arpeggiator nodes
+	nodes.arpFilter1 = context.createBiquadFilter();
+	nodes.arpFilter2 = context.createBiquadFilter();
+	nodes.arpVolume = context.createGain();
+	nodes.arpVolume.connect(context.destination);
+
 	// Connect all the nodes together
 	nodes.filter.connect(nodes.volume);
 	nodes.filterHigh.connect(nodes.filter);
+	
+	nodes.arpFilter1.connect(nodes.arpVolume);
+	nodes.arpFilter2.connect(nodes.arpFilter1);
+
 	nodes.filter.connect(nodes.delay);
 	nodes.delay.connect(nodes.feedbackGain);
 	nodes.feedbackGain.connect(nodes.volume);
@@ -33,56 +45,100 @@ window.onload = function() {
 	oscillator2 = context.createOscillator();
 	oscillator3 = context.createOscillator();
 	oscillator.type = "sawtooth";
-	oscillator2.type = "square";
-	oscillator3.type = "square";
+	oscillator2.type = "sawtooth";
+	oscillator3.type = "sawtooth";
 	oscillator.connect(nodes.filterHigh);
 	oscillator2.connect(nodes.filterHigh);
 	oscillator3.connect(nodes.filterHigh);
+
+	// create arpeggio oscillator
+	arpOscillator = context.createOscillator();
+	arpOscillator.type = "square";
+	arpOscillator.connect(nodes.arpFilter2);
+
 
 	// initial settings for nodes
 	nodes.delay.delayTime.value = .212;
 	nodes.feedbackGain.gain.value = .4;
 	nodes.filter.frequency.type = "lowpass";
-	nodes.filter.frequency.type = "highpass";
+	nodes.filterHigh.frequency.type = "highpass";
+
+	// arp initials
+	nodes.arpFilter1.frequency.type = "lowpass";
+	nodes.arpFilter2.frequency.type = "highpass";
+	
+	// set the notes and turn them on
 	oscillator.frequency.value = major[24];
 	oscillator2.frequency.value = major[27];
 	oscillator3.frequency.value = major[29];
 	oscillator.noteOn(0);
 	oscillator2.noteOn(0);
 	oscillator3.noteOn(0);
+	arpOscillator.frequency.value = major[29];
+	arpOscillator.noteOn(0);
 	nodes.volume.gain.value = 0;
+	nodes.arpVolume.gain.value = 0;
 
 
 	// Basically a constant event listener for Leap
     Leap.loop(function(frame) {
-
-      	if(frame.hands.length == 0) {
-      		nodes.volume.gain.value = 0;
-      	} else {
-      		nodes.volume.gain.value = .5;
-      	}
+	   
+    	if((frame.hands.length >= 1 && frame.hands[0].type == "left") || (frame.hands.length > 1 && frame.hands[1].type == "left")) {
+    		nodes.volume.gain.value = 0.5;
+    	} else {
+    		nodes.volume.gain.value = 0;
+    	}
+    	if((frame.hands.length >= 1 && frame.hands[0].type == "right") || (frame.hands.length > 1 && frame.hands[1].type == "right")) {
+    		nodes.arpVolume.gain.value = 0.5;
+    	} else {
+    		nodes.arpVolume.gain.value = 0;
+    	}
       	// foreach that is always listening for hand motions
 		frame.hands.forEach(function(hand, index) {
+			var handMesh = hand.data('riggedHand.mesh');
+
+	        var screenPosition = handMesh.screenPosition(
+	          hand.palmPosition,
+	          riggedHandPlugin.camera
+	        );
+
 	        positions = hand.screenPosition();
-	        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
-			if(hand.roll() <= -1) {
-				if(!vibratoIsRunning) {
-					vibrato(major[freqStep]);
+	        console.log(positions);
+	        type = hand.type;
+	        if(type == "left") {
+		        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
+				if(hand.roll() <= -1) {
+					if(!vibratoIsRunning) {
+						vibrato(major[freqStep]);
+					}
+				} else {
+					oscillator.frequency.value = major[freqStep];
+					oscillator2.frequency.value = major[freqStep + 3];
+					oscillator3.frequency.value = major[freqStep + 5];
+					vibratoIsRunning = false;
+					clearInterval(vibratoInterval);
 				}
-			} else {
-				oscillator.frequency.value = major[freqStep];
-				oscillator2.frequency.value = major[freqStep + 3];
-				oscillator3.frequency.value = major[freqStep + 5];
-				vibratoIsRunning = false;
-				clearInterval(vibratoInterval);
+				nodes.filter.frequency.value = (positions[1] + 100) * 10;
+				nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
 			}
-			nodes.filter.frequency.value = (positions[1] + 100) * 10;
-			nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
-			var sphere = ( spheres[index] || (spheres[index] = new Sphere()) );
-   			sphere.setTransform(hand.screenPosition(), hand.roll());
+			if(type == "right") {
+				console.log("da fuk");
+		        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
+				console.log(freqStep);
+				console.log(major[freqStep]);
+				arpOscillator.frequency.value = major[freqStep];
+				console.log("Hey it worked");
+
+				nodes.arpFilter1.frequency.value = (positions[1] + 100) * 10;
+				nodes.arpFilter2.frequency.value = (positions[2] + 100) * 10;
+			}
+			//var sphere = ( spheres[index] || (spheres[index] = new Sphere()) );
+   			//sphere.setTransform(hand.screenPosition(), hand.roll());
 	    });
 
-    }).use('screenPosition', {scale: 0.25});
+    }).use('screenPosition', {scale: 0.5})
+	.use('riggedHand')
+    .use('handEntry')
 		
 
 	// basic vibrato function
@@ -102,32 +158,6 @@ window.onload = function() {
 
 	}
 
-	var Sphere = function() {
-
-		var sphere = this;
-		var img = document.createElement('img');
-		img.src = 'sphere-01.svg';
-		img.style.position = 'absolute';
-		img.onload = function () {
-			sphere.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
-			document.body.appendChild(img);
-		}
-
-		sphere.setTransform = function(position, rotation) {
-
-			img.style.left = position[0] - img.width  / 2 + 'px';
-			img.style.top  = position[1] - img.height / 2 + 'px';
-
-			img.style.transform = 'rotate(' + -rotation + 'rad)';
-
-			img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
-			img.style.OTransform = img.style.transform;
-
-		};
-
-	};
-
-	spheres[0] = new Sphere();
-	Leap.loopController.setBackground(true);
+	riggedHandPlugin = Leap.loopController.plugins.riggedHand;
 
 }	
