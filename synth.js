@@ -53,8 +53,11 @@ window.onload = function() {
 
 	// create arpeggio oscillator
 	arpOscillator = context.createOscillator();
+	arpOscillator2 = context.createOscillator();
 	arpOscillator.type = "square";
+	arpOscillator2.type = "square";
 	arpOscillator.connect(nodes.arpFilter2);
+	arpOscillator2.connect(nodes.arpFilter2);
 
 
 	// initial settings for nodes
@@ -75,7 +78,9 @@ window.onload = function() {
 	oscillator2.noteOn(0);
 	oscillator3.noteOn(0);
 	arpOscillator.frequency.value = major[29];
+	arpOscillator2.frequency.value = major[29];
 	arpOscillator.noteOn(0);
+	arpOscillator2.noteOn(0);
 	nodes.volume.gain.value = 0;
 	nodes.arpVolume.gain.value = 0;
 
@@ -89,7 +94,7 @@ window.onload = function() {
     		nodes.volume.gain.value = 0;
     	}
     	if((frame.hands.length >= 1 && frame.hands[0].type == "right") || (frame.hands.length > 1 && frame.hands[1].type == "right")) {
-    		nodes.arpVolume.gain.value = 0.5;
+    		nodes.arpVolume.gain.value = 0.3;
     	} else {
     		nodes.arpVolume.gain.value = 0;
     	}
@@ -103,11 +108,12 @@ window.onload = function() {
 	        );
 
 	        positions = hand.screenPosition();
-	        console.log(positions);
 	        type = hand.type;
+	        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
+	        var y = (-1 * (positions[1]) * 20) + 3000;
+	        var z = (-1 * (positions[2]) * 20) + 3000;
 	        if(type == "left") {
-		        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
-				if(hand.roll() <= -1) {
+				if(hand.roll() >= 1) {
 					if(!vibratoIsRunning) {
 						vibrato(major[freqStep]);
 					}
@@ -118,25 +124,19 @@ window.onload = function() {
 					vibratoIsRunning = false;
 					clearInterval(vibratoInterval);
 				}
-				nodes.filter.frequency.value = (positions[1] + 100) * 10;
-				nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
+				nodes.filter.frequency.value = y;
+				nodes.filterHigh.frequency.value = z;
 			}
 			if(type == "right") {
-				console.log("da fuk");
-		        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
-				console.log(freqStep);
-				console.log(major[freqStep]);
 				arpOscillator.frequency.value = major[freqStep];
-				console.log("Hey it worked");
+				arpOscillator2.frequency.value = major[freqStep];
 
-				nodes.arpFilter1.frequency.value = (positions[1] + 100) * 10;
-				nodes.arpFilter2.frequency.value = (positions[2] + 100) * 10;
+				nodes.arpFilter1.frequency.value = y;
+				nodes.arpFilter2.frequency.value = z;
 			}
-			//var sphere = ( spheres[index] || (spheres[index] = new Sphere()) );
-   			//sphere.setTransform(hand.screenPosition(), hand.roll());
 	    });
 
-    }).use('screenPosition', {scale: 0.5})
+    }).use('screenPosition', {scale: 0.75})
 	.use('riggedHand')
     .use('handEntry')
 		
