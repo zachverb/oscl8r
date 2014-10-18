@@ -202,7 +202,6 @@ window.onload = function() {
 					arpOscillator2.disconnect();
 				}
 				freqStep+=direction;
-				makeTriad(freqStep);
 				arpOscillatorSetup(majorArp[freqStep]);
 			}, 70)
 			prevFreqStep = freqStep;

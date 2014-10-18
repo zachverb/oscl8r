@@ -5,4 +5,10 @@
 	 viewBox="0 0 385.4 368.6" enable-background="new 0 0 385.4 368.6" xml:space="preserve">
 <path fill="#C8C7C8" d="M357.8,368.6H25c-13.7,0-25-11.2-25-25V25C0,11.2,11.3,0,25,0h332.8c13.8,0,25,11.2,25,25v318.6
 	C382.8,357.4,371.5,368.6,357.8,368.6z"/>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="30.7201" y1="184.3181" x2="352.0455" y2="184.3181">
+	<stop  offset="0" style="stop-color:#CF529E"/>
+	<stop  offset="1" style="stop-color:#2484C6;stop-opacity:0"/>
+</linearGradient>
+<path fill="url(#SVGID_1_)" d="M327,339.1H55.7c-13.8,0-25-11.2-25-25V54.6c0-13.8,11.3-25,25-25H327c13.8,0,25,11.3,25,25v259.5
+	C352,327.8,340.8,339.1,327,339.1z"/>
 </svg>
