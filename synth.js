@@ -3,7 +3,7 @@ window.onload = function() {
 	var playButton = document.getElementById("playButton");
 
 	var positions;
-
+	var vibratoRunning;
 	// var analyser = context.createAnalyser();
 	
 	// object which holds all the nodes
@@ -18,7 +18,7 @@ window.onload = function() {
 
 	// Connect all the nodes together
 	nodes.filter.connect(nodes.volume);
-	nodes.filterHigh.connect(nodes.volume);
+	nodes.filterHigh.connect(nodes.filter);
 	nodes.filter.connect(nodes.delay);
 	nodes.delay.connect(nodes.feedbackGain);
 	nodes.feedbackGain.connect(nodes.volume);
@@ -30,7 +30,7 @@ window.onload = function() {
 	oscillator2 = context.createOscillator();
 	oscillator.type = "sawtooth";
 	oscillator2.type = "square";
-	oscillator.connect(nodes.filter);
+	oscillator.connect(nodes.filterHigh);
 	oscillator2.connect(nodes.filterHigh);
 	oscillator.frequency.value = 220.00;
 	oscillator2.frequency.value = oscillator.frequency.value * 2
@@ -50,8 +50,10 @@ window.onload = function() {
 
       frame.hands.forEach(function(hand, index) {
         positions = hand.screenPosition();
-		oscillator.frequency.value = freqs[(Math.floor((positions[0] / freqs.length) % freqs.length))];
-		oscillator2.frequency.value = oscillator.frequency.value * 2
+        var freqStep = (Math.floor((positions[0] / freqs.length) % freqs.length));
+		oscillator.frequency.value = freqs[freqStep];
+		oscillator2.frequency.value = freqs[freqStep + 4];
+		vibrato(freqs[freqStep]);
 		nodes.filter.frequency.value = (positions[1] + 100) * 10;
 		nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
 		console.log(positions[1]);
@@ -66,5 +68,19 @@ window.onload = function() {
 		console.log("playing");
 	}
 
+	vibrato = function(frequency) {
+		var top = frequency + 10;
+		var bottom = frequency - 10;
+		var interval = 3;
+		clearInterval(vibratoRunning);
+		vibratoRunning = setInterval(function() {
+				oscillator.frequency.value += interval;
+				oscillator2.frequency.value += interval;
+				if(oscillator.frequency.value > top || oscillator.frequency.value < bottom) {
+					interval *= -1;
+				}
+		}, 10)
+
+	}
 
 }	
