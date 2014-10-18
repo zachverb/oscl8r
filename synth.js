@@ -1,5 +1,7 @@
 window.onload = function() {	
-	context = new webkitAudioContext();
+	if('webkitAudioContext' in window) {
+		var context = new webkitAudioContext();
+	}
 	var playButton = document.getElementById("playButton");
 
 	// var analyser = context.createAnalyser();
