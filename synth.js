@@ -1,53 +1,70 @@
 window.onload = function() {	
-	if('webkitAudioContext' in window) {
-		var context = new webkitAudioContext();
-	}
+	var context = new webkitAudioContext();
 	var playButton = document.getElementById("playButton");
+
+	var positions;
 
 	// var analyser = context.createAnalyser();
 	
 	// object which holds all the nodes
 	var nodes = {};
 
-	// var ctx = canvas.getContext("2d");
+	//add nodes
+	nodes.filter = context.createBiquadFilter();  
+	nodes.filterHigh = context.createBiquadFilter();
+	nodes.volume = context.createGain();
+	nodes.delay = context.createDelay();
+	nodes.feedbackGain = context.createGain();
 
-	// var gradient = ctx.createLinearGradient(0,0,0,canvas.height);
-	//     gradient.addColorStop(1,'#8CB7E1');
-	//     gradient.addColorStop(0.75,'#E8E1CE');
-	//     gradient.addColorStop(0.25,'#F8CB00');
-	//     gradient.addColorStop(0,'#C85914');
-
-	// ctx.fillStyle = gradient;
-
-	// //add nodes
-	// nodes.filter = context.createBiquadFilter();  
-	// nodes.volume = context.createGain();
-	// nodes.delay = context.createDelay();
-	// nodes.feedbackGain = context.createGain();
-
-	// // Connect all the nodes together
-	// nodes.filter.connect(nodes.volume);
-	// nodes.filter.connect(nodes.delay);
-	// nodes.delay.connect(nodes.feedbackGain);
-	// nodes.feedbackGain.connect(nodes.volume);
-	// nodes.feedbackGain.connect(nodes.delay);
+	// Connect all the nodes together
+	nodes.filter.connect(nodes.volume);
+	nodes.filterHigh.connect(nodes.volume);
+	nodes.filter.connect(nodes.delay);
+	nodes.delay.connect(nodes.feedbackGain);
+	nodes.feedbackGain.connect(nodes.volume);
+	nodes.feedbackGain.connect(nodes.delay);
+	nodes.volume.connect(context.destination);
 
 	//Create initial oscillator
 	oscillator = context.createOscillator();
-	oscillator.connect(context.destination);
-	oscillator.frequency.value = 65.406;
+	oscillator2 = context.createOscillator();
+	oscillator.type = "sawtooth";
+	oscillator2.type = "square";
+	oscillator.connect(nodes.filter);
+	oscillator2.connect(nodes.filterHigh);
+	oscillator.frequency.value = 220.00;
+	oscillator2.frequency.value = oscillator.frequency.value * 2
 
-	// analyser.smoothingTimeConstant = 0.8;
-	// analyser.fftSize = 512;
+	nodes.delay.delayTime.value = .212;
+	nodes.feedbackGain.gain.value = .4;
+	nodes.volume.gain.value = .5;
+	nodes.filter.frequency.type = "lowpass";
 
 	// drawSpectrum();
 
 	// array of all available frequencies
-	// var freqs = [65.406, 69.296, 73.416, 77.782, 82.407, 87.31, 92.50, 98.00, 103.83, 110.00, 116.54, 123.47, 130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 261.63, 277.18, 293.67, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77, 1046.50, 1108.73, 1174.66, 1244.51, 1318.51, 1396.91, 1479.98, 1567.98, 1661.22, 1760.00, 1864.66, 1975.53, 2093.00];
+
+	//var freqs = [220.000, 233.082, 246.942, 261.626, 277.183, 293.665, 311.127, 329.628, 349.228, 369.994, 391.995, 415.305]
+
+    Leap.loop(function(frame) {
+
+      frame.hands.forEach(function(hand, index) {
+        positions = hand.screenPosition();
+		oscillator.frequency.value = freqs[(Math.floor((positions[0] / freqs.length) % freqs.length))];
+		oscillator2.frequency.value = oscillator.frequency.value * 2
+		nodes.filter.frequency.value = (positions[1] + 100) * 10;
+		nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
+		console.log(positions[1]);
+		console.log(positions[2]);
+      });
+
+    }).use('screenPosition', {scale: 0.25});
 
 	playButton.onclick = function() {
 		oscillator.noteOn(0);
+		oscillator2.noteOn(0);
 		console.log("playing");
 	}
+
 
 }	

@@ -5,6 +5,7 @@
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="http://js.leapmotion.com/leap-0.6.3.js"></script>
 <script src="http://js.leapmotion.com/leap-plugins-0.1.8.js"></script>
+<script type="text/javascript" src="scales.js"></script>
 </head>
 
     <body> 
@@ -20,25 +21,17 @@
             <div class = "col-md-3"><img height="5%" width="5%" src="green-01.svg"/> </div>
         </div>
     </body>
-<script>
-var connected = true;
-var soundFile = "ABCDEFG";
-if (connected) {
-    alert("leap motion connected");
-} else {
-    alert("not connected");
-}
-function choose() {
-    alert("beep beep boop bloop");
-}
-window.onload = function() {
-    Leap.loop(function(frame) {
-
-      frame.hands.forEach(function(hand, index) {
-        console.log(hand.screenPosition());
-      });
-
-    }).use('screenPosition', {scale: 0.25});
-}
-  </script>
+    <script type="text/javascript" src="synth.js"/>
+    <script>
+    var connected = true;
+    var soundFile = "ABCDEFG";
+    if (connected) {
+        alert("leap motion connected");
+    } else {
+        alert("not connected");
+    }
+    function choose() {
+        alert("beep beep boop bloop");
+    }
+    </script>
 </html>
