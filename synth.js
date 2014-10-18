@@ -3,7 +3,8 @@ window.onload = function() {
 	var playButton = document.getElementById("playButton");
 
 	var positions;
-	var vibratoRunning;
+	var vibratoInterval;
+	var vibratoIsRunning = false;
 	// var analyser = context.createAnalyser();
 	
 	// object which holds all the nodes
@@ -28,12 +29,13 @@ window.onload = function() {
 	//Create initial oscillator
 	oscillator = context.createOscillator();
 	oscillator2 = context.createOscillator();
+	oscillator3 = context.createOscillator();
 	oscillator.type = "sawtooth";
 	oscillator2.type = "square";
+	oscillator3.type = "square";
 	oscillator.connect(nodes.filterHigh);
 	oscillator2.connect(nodes.filterHigh);
-	oscillator.frequency.value = 220.00;
-	oscillator2.frequency.value = oscillator.frequency.value * 2
+	oscillator3.connect(nodes.filterHigh);
 
 	nodes.delay.delayTime.value = .212;
 	nodes.feedbackGain.gain.value = .4;
@@ -48,34 +50,51 @@ window.onload = function() {
 
     Leap.loop(function(frame) {
 
-      frame.hands.forEach(function(hand, index) {
-        positions = hand.screenPosition();
-        var freqStep = (Math.floor((positions[0] / freqs.length) % freqs.length));
-		oscillator.frequency.value = freqs[freqStep];
-		oscillator2.frequency.value = freqs[freqStep + 4];
-		vibrato(freqs[freqStep]);
-		nodes.filter.frequency.value = (positions[1] + 100) * 10;
-		nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
-		console.log(positions[1]);
-		console.log(positions[2]);
-      });
+      	if(frame.hands.length == 0) {
+      		nodes.volume.gain.value = 0;
+      	} else {
+      		nodes.volume.gain.value = .5;
+      	}
+		frame.hands.forEach(function(hand, index) {
+	        positions = hand.screenPosition();
+	        var freqStep = (Math.floor((positions[0] / freqs.length) % freqs.length));
+			if(hand.roll() <= -1) {
+				console.log(vibratoInterval);
+				if(!vibratoIsRunning) {
+					vibrato(freqs[freqStep]);
+				}
+			} else {
+				oscillator.frequency.value = freqs[freqStep];
+				oscillator2.frequency.value = freqs[freqStep + 4];
+				oscillator3.frequency.value = freqs[freqStep + 7];
+				vibratoIsRunning = false;
+				clearInterval(vibratoInterval);
+			}
+			nodes.filter.frequency.value = (positions[1] + 100) * 10;
+			nodes.filterHigh.frequency.value = (positions[2] + 100) * 10;
+			// console.log(positions[1]);
+			// console.log(positions[2]);
+			//console.log(hand.roll());
+	    });
 
     }).use('screenPosition', {scale: 0.25});
 
 	playButton.onclick = function() {
 		oscillator.noteOn(0);
 		oscillator2.noteOn(0);
+		oscillator3.noteOn(0);
 		console.log("playing");
 	}
 
 	vibrato = function(frequency) {
+		vibratoIsRunning = true;
 		var top = frequency + 10;
 		var bottom = frequency - 10;
 		var interval = 3;
-		clearInterval(vibratoRunning);
-		vibratoRunning = setInterval(function() {
+		vibratoInterval = setInterval(function() {
 				oscillator.frequency.value += interval;
 				oscillator2.frequency.value += interval;
+				oscillator3.frequency.value += interval;
 				if(oscillator.frequency.value > top || oscillator.frequency.value < bottom) {
 					interval *= -1;
 				}
