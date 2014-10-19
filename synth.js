@@ -210,5 +210,123 @@ window.onload = function() {
 
 	riggedHandPlugin = Leap.loopController.plugins.riggedHand;
 
+	var arr = [false, false, false, false,false, false, false, false];
+    var arr2 = [false, false, false, false,false, false, false, false];
+    var arr3 = [false, false, false, false,false, false, false, false];
+
+    var total = 8;
+    var total2 = 8;
+    var total3 = 8;
+
+    var count = 1;
+    var count2 = 1;
+    var count3 = 1;
+
+    var flag = 0;
+    var flag2 = 0;
+    var flag3 = 0;
+
+    var isGreen = false;
+    var isGreen2 = false;
+    var isGreen3 = false;
+
+
+
+    var yellow = '<img src="yellow-01.svg"/>';
+    var green = '<img src="green-01.svg"/>';
+    var red = '<img src="red-01.svg"/>';
+
+    //have a while loop going forever that gets the time since page loaded/ splits that up into seconds, each second change one of the 4 divs to green
+
+
+
+        $('.work').click(function(){
+            var d = $(this).attr('class').split(' ')[0];
+            //console.log("d: " + d);
+            //console.log("arr at d: " + arr[d]);
+            if (d < 8) {
+                arr[d] = !arr[d];
+            } 
+
+            if (d >= 8 && d < 16) {
+                arr2[d - 8] = !arr2[d - 8];
+            } else {
+                arr3[d - 16] = !arr3[d - 16];
+
+            }
+        });
+
+        setInterval(function() {
+            for (var i = 0 ; i < 8; i++){
+                if (arr[i] == true && flag == i) {
+                    new Audio('kick.mp3').play();
+                }
+                if (arr[i] == true) {
+                    $('.' + i).html(green);
+                }
+                if (flag == i) {
+                         $('.' + flag).html(yellow);
+                    } else {
+                        if (arr[i] == false){
+                            $('.' + i).html(red);
+                        }
+                }
+            }
+
+
+            for (var i = 0 ; i < 8; i++) {
+                if (arr2[i] == true && flag2 == i) {
+                    new Audio('snare.wav').play();
+                }
+                if (arr2[i] == true) {
+                    $('.' + (i + 8)).html(green);
+                }
+                if (flag2 == i) {
+                         $('.' + (flag2 + 8)).html(yellow);
+                    } else {
+                        if (arr2[i] == false){
+                            $('.' + (i + 8)).html(red);
+                        }
+                }
+            }
+
+
+
+            for (var i = 0 ; i < 8; i++){
+                if (arr3[i] == true && flag3 == i) {
+                    new Audio('hat.wav').play();
+                }
+                if (arr3[i] == true) {
+                    $('.' + (i + 16)).html(green);
+                }
+                if (flag3 == i) {
+                         $('.' + (flag3 + 16)).html(yellow);
+                    } else {
+                        if (arr3[i] == false){
+                            $('.' + (i + 16)).html(red);
+                        }
+                }
+            }
+
+
+            flag++;
+            if (flag > 7) {//changes rhe div that turns green
+                flag = 0;
+            }
+            flag2++;
+            if (flag2 > 7) {//changes rhe div that turns green
+                flag2 = 0;
+            }
+            flag3++;
+            if (flag3 > 7) {//changes rhe div that turns green
+                flag3 = 0;
+            }
+
+        }, 100);
+
+
+
+
+
 }
 	
