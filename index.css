@@ -14,7 +14,31 @@ body {
 	margin-left:20px;
 }
 
-img:hover {
-	opacity: 0.5;
-	cursor: pointer;
+#container {
+	z-index:2000;
+	height: 20%;
+}
+
+canvas {
+	height: 80%;
+	bottom:0px;
+}
+
+#notice {
+    position: relative 
+    color:white;
+    height:100%;
+    font-style: italic;
+    width:10%;
+}
+
+#notice p {
+    margin: 0;
+    position: absolute;
+    top: 45%;
+    left: 45%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%) 
+    font-size:15pt;
+>>>>>>> Stashed changes
 }

@@ -1,5 +1,8 @@
 window.onload = function() {	
 	var context = new webkitAudioContext();
+	if(!context) {
+		alert("Your browser does not support this app! Please use a webkit supported browser.")
+	}
 	var playButton = document.getElementById("playButton");
 
 	var positions;
@@ -8,7 +11,7 @@ window.onload = function() {
 	var vibratoIsRunning = false;
 	var arpeggiating = false;
 	var prevFreqStep = -1;
-
+	var leap = false
 	var arpOscillator = false;
 	var arpOscillator2 = false;
 	// var analyser = context.createAnalyser();
@@ -89,6 +92,7 @@ window.onload = function() {
 	oscillator2.noteOn(0);
 	oscillator3.noteOn(0);
 
+
 	arpOscillatorSetup = function(frequency) {
 		arpOscillator = context.createOscillator();
 		arpOscillator2 = context.createOscillator();
@@ -99,9 +103,10 @@ window.onload = function() {
 		arpOscillator.frequency.value = frequency;
 		arpOscillator2.frequency.value = frequency;
 		arpOscillator.noteOn(0);
-		arpOscillator2.noteOn(0)
-		console.log("hello?");
+		arpOscillator2.noteOn(0);
 	}
+
+	//createOscFull = function(frequency, type, )
 
 	// create arpeggio oscillator
 	nodes.volume.gain.value = 0;
@@ -110,6 +115,12 @@ window.onload = function() {
 
 	// Basically a constant event listener for Leap
     Leap.loop(function(frame) {
+    	if(leap === false) {
+    		leap = true;
+    		$("#notice p").text("OK!");
+    		$("#notice").fadeOut(2000);
+    	}
+    	
 	   
     	if((frame.hands.length >= 1 && frame.hands[0].type == "left") || (frame.hands.length > 1 && frame.hands[1].type == "left")) {
     		nodes.volume.gain.value = 0.5;
@@ -162,7 +173,7 @@ window.onload = function() {
 				nodes.arpFilter2.frequency.value = z;
 			}
 	    });
-
+		
     }).use('screenPosition', {scale: 0.75})
 	.use('riggedHand')
     .use('handEntry')
@@ -182,7 +193,6 @@ window.onload = function() {
 					interval *= -1;
 				}
 		}, 10)
-
 	}
 
 	arpeggiate = function(freqStep) {
