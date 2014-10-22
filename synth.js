@@ -24,49 +24,52 @@ window.onload = function() {
 	var riggedHandPlugin;
 
 
-	//add nodes
-	nodes.filter = context.createBiquadFilter();  
-	nodes.filterHigh = context.createBiquadFilter();
+	// add fiter, volume, delay chord nodes
+	nodes.lowPassC = context.createBiquadFilter();  
+	nodes.highPassC = context.createBiquadFilter();
+	
 	nodes.volume = context.createGain();
+	
 	nodes.delay = context.createDelay();
 	nodes.feedbackGain = context.createGain();
 
-	// arpeggiator nodes
-	nodes.arpFilter1 = context.createBiquadFilter();
-	nodes.arpFilter2 = context.createBiquadFilter();
+	// add filters, volume, delay arpeggiator nodes
+	nodes.lowPassArp = context.createBiquadFilter();
+	nodes.highPassArp = context.createBiquadFilter();
+	
 	nodes.arpVolume = context.createGain();
 	nodes.arpVolume.connect(context.destination);
+	
 	nodes.arpDelay = context.createDelay();
 	nodes.arpFeedbackGain = context.createGain();
 
-	// Connect all the nodes together
-	nodes.filter.connect(nodes.volume);
-	nodes.filterHigh.connect(nodes.filter);
-	
-	nodes.arpFilter2.connect(nodes.arpFilter1);
 
-
-	nodes.filter.connect(nodes.delay);
+	// Connect chord filter node
+	nodes.lowRassC.connect(nodes.volume);
+	nodes.highPassC.connect(nodes.lowPassC);
+	nodes.lowPassC.connect(nodes.delay);
 	nodes.delay.connect(nodes.feedbackGain);
 	nodes.feedbackGain.connect(nodes.volume);
 	nodes.feedbackGain.connect(nodes.delay);
 	nodes.volume.connect(context.destination);
 
-	nodes.arpFilter1.connect(nodes.arpDelay);
+	//fonnect arpeggiator filters
+	nodes.highPassArp.connect(nodes.lowPassArp);
+	nodes.lowPassArp.connect(nodes.arpDelay);
 	nodes.arpDelay.connect(nodes.arpFeedbackGain);
 	nodes.arpFeedbackGain.connect(nodes.arpVolume);
 	nodes.arpFeedbackGain.connect(nodes.arpDelay);
 
-	//Create initial oscillator
+	//Create initial oscillators for chord nodes
 	oscillator = context.createOscillator();
 	oscillator2 = context.createOscillator();
 	oscillator3 = context.createOscillator();
 	oscillator.type = "sawtooth";
 	oscillator2.type = "sawtooth";
 	oscillator3.type = "sawtooth";
-	oscillator.connect(nodes.filterHigh);
-	oscillator2.connect(nodes.filterHigh);
-	oscillator3.connect(nodes.filterHigh);
+	oscillator.connect(nodes.highPassC);
+	oscillator2.connect(nodes.highPassC);
+	oscillator3.connect(nodes.highPassC);
 
 	
 
@@ -74,15 +77,15 @@ window.onload = function() {
 	// initial settings for nodes
 	nodes.delay.delayTime.value = .212;
 	nodes.feedbackGain.gain.value = .4;
-	nodes.filter.frequency.type = "lowpass";
-	nodes.filterHigh.frequency.type = "highpass";
+	nodes.highPassC.frequency.type = "lowpass";
+	nodes.highPassC.frequency.type = "highpass";
 
 
 	// arp initials
 	nodes.arpDelay.delayTime.value = .8;
 	nodes.arpFeedbackGain.gain.value = .4;
-	nodes.arpFilter1.frequency.type = "lowpass";
-	nodes.arpFilter2.frequency.type = "highpass";
+	nodes.lowPassArp.frequency.type = "lowpass";
+	nodes.highPassArp.frequency.type = "highpass";
 	
 	// set the notes and turn them on
 	oscillator.frequency.value = major[24];
@@ -93,20 +96,21 @@ window.onload = function() {
 	oscillator3.noteOn(0);
 
 
+	//creates the arpeggio's oscillators
 	arpOscillatorSetup = function(frequency) {
 		arpOscillator = context.createOscillator();
 		arpOscillator2 = context.createOscillator();
 		arpOscillator.type = "square";
 		arpOscillator2.type = "square";
-		arpOscillator.connect(nodes.arpFilter2);
-		arpOscillator2.connect(nodes.arpFilter2);
+		arpOscillator.connect(nodes.highPassArp);
+		arpOscillator2.connect(nodes.highPassArp);
 		arpOscillator.frequency.value = frequency;
 		arpOscillator2.frequency.value = frequency;
 		arpOscillator.noteOn(0);
 		arpOscillator2.noteOn(0);
 	}
 
-	//createOscFull = function(frequency, type, )
+	// createOscFull = function(frequency, type, )
 
 	// create arpeggio oscillator
 	nodes.volume.gain.value = 0;
@@ -115,19 +119,23 @@ window.onload = function() {
 
 	// Basically a constant event listener for Leap
     Leap.loop(function(frame) {
+
+    	// Notifies user leap is connected
     	if(leap === false) {
     		leap = true;
     		$("#notice p").text("OK!");
     		$("#notice").fadeOut(2000);
     	}
-    	
-	   
-    	if((frame.hands.length >= 1 && frame.hands[0].type == "left") || (frame.hands.length > 1 && frame.hands[1].type == "left")) {
+
+    	// turns up each hand's synth's volume as they appear
+    	if((frame.hands.length >= 1 && frame.hands[0].type == "left") || 
+    		(frame.hands.length > 1 && frame.hands[1].type == "left")) {
     		nodes.volume.gain.value = 0.5;
     	} else {
     		nodes.volume.gain.value = 0;
     	}
-    	if((frame.hands.length >= 1 && frame.hands[0].type == "right") || (frame.hands.length > 1 && frame.hands[1].type == "right")) {
+    	if((frame.hands.length >= 1 && frame.hands[0].type == "right") || 
+    		(frame.hands.length > 1 && frame.hands[1].type == "right")) {
     		nodes.arpVolume.gain.value = 0.2;
     	} else {
     		nodes.arpVolume.gain.value = 0;
@@ -136,20 +144,31 @@ window.onload = function() {
 				arpeggiating = false;
 			}
     	}
-      	// foreach that is always listening for hand motions
-		frame.hands.forEach(function(hand, index) {
-			var handMesh = hand.data('riggedHand.mesh');
 
+      	// foreach that is always listening for hand motions. Does one of these for the left and for the right.
+		frame.hands.forEach(function(hand, index) {
+
+			// prints out the hands on the canvas
+			var handMesh = hand.data('riggedHand.mesh');
 	        var screenPosition = handMesh.screenPosition(
 	          hand.palmPosition,
 	          riggedHandPlugin.camera
 	        );
 
+	        // sets up initial hand values for the hand
 	        positions = hand.screenPosition();
 	        type = hand.type;
+
+	        // freqStep finds where in the array to find the related oscillator's frequency
+	        // based on the X Axis
 	        var freqStep = (Math.floor((positions[0] / major.length) % major.length));
+	        // sets up the highpass and lowpass filter values based on hand positions.
 	        var y = (-1 * (positions[1]) * 20) + 3000;
 	        var z = (-1 * (positions[2]) * 20) + 3000;
+
+	        // On Left Hand, change all the oscillator's values to a frequency related
+	        // part in the freqs array. Sets the second oscilator to 3 half-steps uo,
+	        // and the third oscillator to 5 half-steps up to make a diatonic triad.
 	        if(type == "left") {
 				if(hand.roll() >= 1) {
 					if(!vibratoIsRunning) {
@@ -162,15 +181,18 @@ window.onload = function() {
 					vibratoIsRunning = false;
 					clearInterval(vibratoInterval);
 				}
-				nodes.filter.frequency.value = y;
-				nodes.filterHigh.frequency.value = z;
+				nodes.highPassC.frequency.value = y;
+				nodes.highPassC.frequency.value = z;
 			}
+
+			// Bad code: rewrite coming. Unsure what switch does.
+			// Calls the arpeggiate function, changes the filter. 
 			if(type == "right") {
-				(freqStep -12 > 0) ? freqStep -= 12 : freqStep = 0;
+				(freqStep - 12 > 0) ? freqStep -= 12 : freqStep = 0;
 				arpeggiate(freqStep);
 
-				nodes.arpFilter1.frequency.value = y;
-				nodes.arpFilter2.frequency.value = z;
+				nodes.lowPassArp.frequency.value = y;
+				nodes.highPassArp.frequency.value = z;
 			}
 	    });
 		
@@ -179,7 +201,8 @@ window.onload = function() {
     .use('handEntry')
 		
 
-	// basic vibrato function
+	// basic vibrato function. Creates a loop of pitch shift up and down constantly
+	//
 	vibrato = function(frequency) {
 		vibratoIsRunning = true;
 		var top = frequency + 10;
