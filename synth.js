@@ -24,6 +24,7 @@ window.onload = function() {
 	var riggedHandPlugin;
 
 
+
 	// add fiter, volume, delay chord nodes
 	nodes.lowPassC = context.createBiquadFilter();  
 	nodes.highPassC = context.createBiquadFilter();
@@ -45,7 +46,7 @@ window.onload = function() {
 
 
 	// Connect chord filter node
-	nodes.lowRassC.connect(nodes.volume);
+	nodes.lowPassC.connect(nodes.volume);
 	nodes.highPassC.connect(nodes.lowPassC);
 	nodes.lowPassC.connect(nodes.delay);
 	nodes.delay.connect(nodes.feedbackGain);
@@ -77,7 +78,7 @@ window.onload = function() {
 	// initial settings for nodes
 	nodes.delay.delayTime.value = .212;
 	nodes.feedbackGain.gain.value = .4;
-	nodes.highPassC.frequency.type = "lowpass";
+	nodes.lowPassC.frequency.type = "lowpass";
 	nodes.highPassC.frequency.type = "highpass";
 
 
@@ -202,7 +203,7 @@ window.onload = function() {
 		
 
 	// basic vibrato function. Creates a loop of pitch shift up and down constantly
-	//
+	// none issues at the lower and upper bounds.
 	vibrato = function(frequency) {
 		vibratoIsRunning = true;
 		var top = frequency + 10;
@@ -218,6 +219,7 @@ window.onload = function() {
 		}, 10)
 	}
 
+	// basic function that arpeggiates.
 	arpeggiate = function(freqStep) {
 		if(prevFreqStep != freqStep) {
 			if(arpeggiating) {
@@ -241,6 +243,7 @@ window.onload = function() {
 		}
 	}
 
+	// instantiates the Leap's riggedHandPlugin which shows the hands on screen
 	riggedHandPlugin = Leap.loopController.plugins.riggedHand;
 
 }
