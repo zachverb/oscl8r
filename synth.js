@@ -18,6 +18,8 @@ window.onload = function() {
 	
 	// object which holds all the nodes
 	var nodes = {};
+	var arpObject = {};
+	var speed;
 
 	var riggedHandPlugin;
 
@@ -185,7 +187,7 @@ window.onload = function() {
 			// Calls the arpeggiate function, changes the filter. 
 			if(type == "right") {
 				(freqStep - 12 > 0) ? freqStep -= 12 : freqStep = 0;
-				arpeggiate(freqStep);
+				arpeggiate(freqStep, hand.roll());
 
 				nodes.lowPassArp.frequency.value = y;
 				nodes.highPassArp.frequency.value = z;
@@ -215,37 +217,54 @@ window.onload = function() {
 	}
 
 	// basic function that arpeggiates.
-	arpeggiate = function(freqStep) {
+	arpeggiate = function(freqStep, rotation) {
 		if(prevFreqStep != freqStep) {
+			arpObject.direction = 1;
+			// sets up the bounds for as far as the arpegio will go
+			arpObject.top = freqStep + 3;
+			arpObject.bottom = freqStep - 3;
+			if(arpObject.top >= majorArp.length - 2) {
+				arpObject.top = majorArp.length - 2;
+			} else if(arpObject.bottom <= 0) {
+				arpObject.bottom = 0;
+				arpOgject.top = bottom + 6;
+			}		
 			if(arpeggiating) {
 				clearInterval(arpInterval);
 				arpeggiating = false;
 			}
-			var direction = 1;
-			// sets up the bounds for as far as the arpegio will go
-			var top = freqStep + 3;
-			var bottom = freqStep - 3;
-			if(top >= majorArp.length - 2) {
-				top = majorArp.length - 2;
-			}
-			if(bottom <= 0) {
-				bottom = 0;
-				top = bottom + 6;
-			}
-			arpeggiating = true;
-			arpInterval = setInterval(function() {
-				if(freqStep + direction >= top|| freqStep + direction <= bottom) {
-					direction *= -1;
-				}
-				if(arpOscillator != false || arpOscillator2 != false) {
-					arpOscillator.disconnect();
-					arpOscillator2.disconnect();
-				}
-				freqStep+=direction;
-				arpOscillatorSetup(majorArp[freqStep]);
-			}, 70)
-			prevFreqStep = freqStep;
+			arpObject.freq = freqStep;
+			prevFreqStep = arpObject.freq;
 		}
+		if(Math.floor((rotation + 2) * 100) != speed) {
+			if(arpeggiating) {
+				clearInterval(arpInterval);
+				arpeggiating = false;
+			}
+			speed = Math.floor((rotation + 2) * 100);		
+		}
+		if(speed < 70) {
+			speed = 70;
+		}
+		console.log(speed);
+		if(arpeggiating === false) {
+			setArpInterval(speed);
+		}
+	}
+
+	setArpInterval = function(speed) {
+		arpeggiating = true;
+		arpInterval = setInterval(function() {
+			if(arpObject.freq + arpObject.direction >= arpObject.top|| arpObject.freq + arpObject.direction <= arpObject.bottom) {
+				arpObject.direction *= -1;
+			}
+			if(arpOscillator != false || arpOscillator2 != false) {
+				arpOscillator.disconnect();
+				arpOscillator2.disconnect();
+			}
+			arpObject.freq += arpObject.direction;
+			arpOscillatorSetup(majorArp[arpObject.freq]);
+		}, speed)
 	}
 
 	// instantiates the Leap's riggedHandPlugin which shows the hands on screen
