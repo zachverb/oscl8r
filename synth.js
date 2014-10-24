@@ -236,7 +236,7 @@ window.onload = function() {
 			arpObject.freq = freqStep;
 			prevFreqStep = arpObject.freq;
 		}
-		var tempSpeed = (Math.floor((rotation + 2) * 5) * 20) + 20;
+		var tempSpeed = (Math.floor((rotation + 2) * 5) * 20) - 20;
 		if(tempSpeed != arpObject.speed) {
 			if(arpeggiating) {
 				clearInterval(arpInterval);
