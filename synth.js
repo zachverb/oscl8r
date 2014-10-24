@@ -19,33 +19,28 @@ window.onload = function() {
 	// object which holds all the nodes
 	var nodes = {};
 
-	var spheres = {};
-
 	var riggedHandPlugin;
-
-
 
 	// add fiter, volume, delay chord nodes
 	nodes.lowPassC = context.createBiquadFilter();  
 	nodes.highPassC = context.createBiquadFilter();
-	
 	nodes.volume = context.createGain();
-	
 	nodes.delay = context.createDelay();
 	nodes.feedbackGain = context.createGain();
 
 	// add filters, volume, delay arpeggiator nodes
 	nodes.lowPassArp = context.createBiquadFilter();
-	nodes.highPassArp = context.createBiquadFilter();
-	
+	nodes.highPassArp = context.createBiquadFilter();	
 	nodes.arpVolume = context.createGain();
 	nodes.arpVolume.connect(context.destination);
-	
 	nodes.arpDelay = context.createDelay();
 	nodes.arpFeedbackGain = context.createGain();
 
 
-	// Connect chord filter node
+	// Connect chord filter nodes in this configuration. Each is a node.
+	// highpass > lowpass > volume
+	//				v        ^
+	//			  delay <> feedback gain
 	nodes.lowPassC.connect(nodes.volume);
 	nodes.highPassC.connect(nodes.lowPassC);
 	nodes.lowPassC.connect(nodes.delay);
@@ -61,7 +56,7 @@ window.onload = function() {
 	nodes.arpFeedbackGain.connect(nodes.arpVolume);
 	nodes.arpFeedbackGain.connect(nodes.arpDelay);
 
-	//Create initial oscillators for chord nodes
+	//Create initial oscillators for chord nodes and connect them to the node
 	oscillator = context.createOscillator();
 	oscillator2 = context.createOscillator();
 	oscillator3 = context.createOscillator();
@@ -227,9 +222,19 @@ window.onload = function() {
 				arpeggiating = false;
 			}
 			var direction = 1;
+			// sets up the bounds for as far as the arpegio will go
+			var top = freqStep + 3;
+			var bottom = freqStep - 3;
+			if(top >= majorArp.length - 2) {
+				top = majorArp.length - 2;
+			}
+			if(bottom <= 0) {
+				bottom = 0;
+				top = bottom + 6;
+			}
 			arpeggiating = true;
 			arpInterval = setInterval(function() {
-				if(freqStep + direction >= (majorArp.length - 2) || freqStep + direction <= 0) {
+				if(freqStep + direction >= top|| freqStep + direction <= bottom) {
 					direction *= -1;
 				}
 				if(arpOscillator != false || arpOscillator2 != false) {
