@@ -19,7 +19,7 @@ window.onload = function() {
 	// object which holds all the nodes
 	var nodes = {};
 	var arpObject = {};
-	var speed;
+	arpObject.speed = 0;
 
 	var riggedHandPlugin;
 
@@ -227,7 +227,7 @@ window.onload = function() {
 				arpObject.top = majorArp.length - 2;
 			} else if(arpObject.bottom <= 0) {
 				arpObject.bottom = 0;
-				arpOgject.top = bottom + 6;
+				arpObject.top = arpObject.bottom + 6;
 			}		
 			if(arpeggiating) {
 				clearInterval(arpInterval);
@@ -236,19 +236,21 @@ window.onload = function() {
 			arpObject.freq = freqStep;
 			prevFreqStep = arpObject.freq;
 		}
-		if(Math.floor((rotation + 2) * 100) != speed) {
+		var tempSpeed = (Math.floor((rotation + 2) * 5) * 20) + 20;
+		if(tempSpeed != arpObject.speed) {
 			if(arpeggiating) {
 				clearInterval(arpInterval);
 				arpeggiating = false;
 			}
-			speed = Math.floor((rotation + 2) * 100);		
+			if(arpObject.speed < 70) {
+				tempSpeed = 70;
+			}
+			arpObject.speed = tempSpeed;
 		}
-		if(speed < 70) {
-			speed = 70;
-		}
-		console.log(speed);
+		
+		console.log(arpObject.speed);
 		if(arpeggiating === false) {
-			setArpInterval(speed);
+			setArpInterval(arpObject.speed);
 		}
 	}
 
