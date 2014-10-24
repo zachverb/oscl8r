@@ -182,7 +182,7 @@ window.onload = function() {
 					vibratoIsRunning = false;
 					clearInterval(vibratoInterval);
 				}
-				nodes.highPassC.frequency.value = y;
+				nodes.lowPassC.frequency.value = y;
 				nodes.highPassC.frequency.value = z;
 			}
 
