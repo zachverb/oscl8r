@@ -17,11 +17,10 @@ while(slot <= freqs.length) {
 
 var majorArp = [];
 arpSlot = 0;
-	while(arpSlot < major.length) {
-		majorArp.push(major[arpSlot]);
-		majorArp.push(major[arpSlot + 2]);
-		majorArp.push(major[arpSlot + 4]);
-		arpSlot+=8;
-	}
 
-console.log(majorArp);
+while(arpSlot < major.length) {
+	majorArp.push(major[arpSlot]);
+	majorArp.push(major[arpSlot + 2]);
+	majorArp.push(major[arpSlot + 4]);
+	arpSlot+=8;
+}

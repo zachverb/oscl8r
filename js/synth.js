@@ -14,6 +14,7 @@ window.onload = function() {
 	var leap = false
 	var arpOscillator = false;
 	var arpOscillator2 = false;
+	var arpOscillator3 = false;
 	// var analyser = context.createAnalyser();
 	
 	// object which holds all the nodes
@@ -98,14 +99,19 @@ window.onload = function() {
 	arpOscillatorSetup = function(frequency) {
 		arpOscillator = context.createOscillator();
 		arpOscillator2 = context.createOscillator();
+		arpOscillator3 = context.createOscillator();
 		arpOscillator.type = "square";
 		arpOscillator2.type = "square";
+		arpOscillator3.type = "sawtooth";
 		arpOscillator.connect(nodes.highPassArp);
 		arpOscillator2.connect(nodes.highPassArp);
+		arpOscillator3.connect(nodes.highPassArp);
 		arpOscillator.frequency.value = frequency;
 		arpOscillator2.frequency.value = frequency;
+		arpOscillator3.frequency.value = frequency;
 		arpOscillator.noteOn(0);
 		arpOscillator2.noteOn(0);
+		arpOscillator3.noteOn(0);
 	}
 
 	// createOscFull = function(frequency, type, )
@@ -221,8 +227,8 @@ window.onload = function() {
 		if(prevFreqStep != freqStep) {
 			arpObject.direction = 1;
 			// sets up the bounds for as far as the arpegio will go
-			arpObject.top = freqStep + 3;
-			arpObject.bottom = freqStep - 3;
+			arpObject.top = freqStep + 2;
+			arpObject.bottom = freqStep - 2;
 			if(arpObject.top >= majorArp.length - 2) {
 				arpObject.top = majorArp.length - 2;
 			} else if(arpObject.bottom <= 0) {
@@ -242,8 +248,8 @@ window.onload = function() {
 				clearInterval(arpInterval);
 				arpeggiating = false;
 			}
-			if(arpObject.speed < 70) {
-				tempSpeed = 70;
+			if(arpObject.speed < 10) {
+				tempSpeed = 10;
 			}
 			arpObject.speed = tempSpeed;
 		}
@@ -263,6 +269,7 @@ window.onload = function() {
 			if(arpOscillator != false || arpOscillator2 != false) {
 				arpOscillator.disconnect();
 				arpOscillator2.disconnect();
+				arpOscillator3.disconnect();
 			}
 			arpObject.freq += arpObject.direction;
 			arpOscillatorSetup(majorArp[arpObject.freq]);
